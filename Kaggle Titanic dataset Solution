@@ -5,7 +5,7 @@ x = [ones(m,1) x];
 x_t = [ones(m_t,1) x_t];
 
 
-lambda = 2; %you can play around with this if you want
+lambda = 2; 
 theta_i = zeros(size(x,2),1);
 options = optimoptions(@fminunc,'Algorithm','Quasi-Newton','GradObj', 'on', 'MaxIter', 1000);
 
