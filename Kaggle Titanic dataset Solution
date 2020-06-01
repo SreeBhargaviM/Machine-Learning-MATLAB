@@ -1,0 +1,38 @@
+m = size(x,1);
+m_t = size(x_t,1);
+
+x = [ones(m,1) x];
+x_t = [ones(m_t,1) x_t];
+
+
+lambda = 2; %you can play around with this if you want
+theta_i = zeros(size(x,2),1);
+options = optimoptions(@fminunc,'Algorithm','Quasi-Newton','GradObj', 'on', 'MaxIter', 1000);
+
+[theta, J, exit_flag] = fminunc(@(t)(titanic_cost(t, x, y, lambda)), theta_i, options);
+
+y_p = zeros(m_t,1);
+h_p = 1./(1+exp(-x_t*theta));
+i = 1;
+
+while(i<m_t+1) 
+    if(h_p(i,1)>=0.5)
+        y_p(i,1) = 1;
+    else
+        y_p(i,1) = 0;
+    end
+    i = i+1;
+end
+
+%cost function
+
+function [J, grad] = titanic_cost(theta, X, y, lambda)
+    m = length(y);
+    h = zeros(m,1);
+    h = 1./(1+exp(-X*theta));
+    J = sum(-(y.*log(h))-((1-y).*log(1-h)))/(m) + ((sum(theta.*theta)-(theta(1,1)*theta(1,1)))*lambda/(2*m));
+
+    h1 = h-y;
+    grad = (transpose(transpose(h1)*X)/m) + (lambda/m)*theta;
+    grad(1,1) = grad(1,1) -(lambda/m)*theta(1,1);
+end
