@@ -1,0 +1,84 @@
+% Regularised cost and gradients for Logistic regression
+
+function [J, grad] = costFunctionReg(theta, X, y, lambda)
+%COSTFUNCTIONREG Compute cost and gradient for logistic regression with regularization
+%   J = COSTFUNCTIONREG(theta, X, y, lambda) computes the cost of using
+%   theta as the parameter for regularized logistic regression and the
+%   gradient of the cost w.r.t. to the parameters. 
+
+% Initialize some useful values
+m = length(y); % number of training examples
+
+% You need to return the following variables correctly 
+J = 0;
+grad = zeros(size(theta));
+
+
+h = zeros(m,1);
+h = sigmoid(X*theta);
+J = sum(-(y.*log(h))-((1-y).*log(1-h)))/(m) + ((sum(theta.*theta)-(theta(1,1)*theta(1,1)))*lambda/(2*m));
+
+h1 = h-y;
+grad = (transpose(transpose(h1)*X)/m) + (lambda/m)*theta;
+grad(1,1) = grad(1,1) -(lambda/m)*theta(1,1);
+
+end
+
+% function to calculate cost for multiclass classification
+
+function [J, grad] = lrCostFunction(theta, X, y, lambda)
+%LRCOSTFUNCTION Compute cost and gradient for logistic regression with 
+%regularization
+%   J = LRCOSTFUNCTION(theta, X, y, lambda) computes the cost of using
+%   theta as the parameter for regularized logistic regression and the
+%   gradient of the cost w.r.t. to the parameters. 
+
+% Initialize some useful values
+m = length(y); % number of training examples
+z = zeros(m,1);
+z = X*theta;
+g = 1./(1+exp(-z));
+ 
+J = 0;
+J = (sum((-y.*log(g))-((1-y).*log(1-g)))/m) + (lambda/(2*m))*(sum(theta.*theta)-(theta(1,1)*theta(1,1)));
+grad = zeros(size(theta));
+x1 = transpose(X);
+grad = ((x1*(g-y))/m) + (lambda/m)*theta;
+grad(1,1) = grad(1,1) - (lambda/m)*theta(1,1);
+
+grad = grad(:);
+
+end
+
+% function for training multiple Logistic regression units (multiclass classification)
+
+function [all_theta] = oneVsAll(X, y, num_labels, lambda)
+%ONEVSALL trains multiple logistic regression classifiers and returns all
+%the classifiers in a matrix all_theta, where the i-th row of all_theta 
+%corresponds to the classifier for label i
+%   [all_theta] = ONEVSALL(X, y, num_labels, lambda) trains num_labels
+%   logistic regression classifiers and returns each of these classifiers
+%   in a matrix all_theta, where the i-th row of all_theta corresponds 
+%   to the classifier for label i
+
+% Some useful variables
+m = size(X, 1);
+n = size(X, 2);
+
+ 
+all_theta = zeros(num_labels, n + 1);
+
+% Add ones to the X data matrix
+X = [ones(m, 1) X];
+options = optimset('GradObj', 'on', 'MaxIter', 50);
+initial_theta = zeros(n + 1, 1);
+
+for c = 1:num_labels
+    all_theta(c,:) = fmincg (@(t)(lrCostFunction(t, X, (y == c), lambda)), initial_theta, options);
+end
+end
+
+% using FMINUNC for optimization
+
+[theta, cost] = fminunc(@(t)(costFunction(t, X, y)), initial_theta, options);
+
